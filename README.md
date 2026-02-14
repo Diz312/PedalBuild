@@ -39,225 +39,118 @@ PedalBuild guides you through a 10-stage workflow:
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/Diz312/PedalBuild
 cd PedalBuild
 
-# 1. Setup Python environment
-uv venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# 2. Install Python dependencies
+# Setup Python environment
+uv venv && source .venv/bin/activate  # Windows: .venv\Scripts\activate
 uv pip install -e '.[dev]'
 
-# 3. Install Node dependencies
+# Install Node dependencies
 npm install
 
-# 4. Setup pre-commit hooks (optional but recommended)
+# Setup pre-commit hooks
 pre-commit install
 
-# 5. Generate TypeScript types from Python models
+# Generate TypeScript types
 npm run generate:types
 
-# 6. Copy environment template
-cp .env.local .env
+# Setup environment
+cp .env.example .env
+nano .env  # Add your API keys
 
-# 7. Edit .env with your API keys (Anthropic, Google Gemini, etc.)
-nano .env
-
-# 8. Set up database
+# Initialize database
 npm run setup:db
 
-# 9. Start development servers (Python FastAPI + Next.js)
+# Start development servers
 npm run dev
 ```
 
-## Project Structure
+### First Steps
 
-```
-/PedalBuild/
-├── .claude/              # Custom Claude Code agents & skills
-├── src/
-│   ├── backend/          # Google ADK agents & API
-│   ├── frontend/         # Next.js application
-│   ├── models/           # TypeScript data models
-│   ├── db/               # Database schema & migrations
-│   └── shared/           # Shared types
-├── data/                 # Local data storage
-│   ├── db/              # SQLite database
-│   ├── uploads/         # PDFs, schematics, photos
-│   └── exports/         # Generated layouts & graphics
-├── docs/                 # Documentation
-└── tests/                # Test suites
-```
-
-## Development
-
-### Running the Application
-
-```bash
-# Run development servers (Python FastAPI + Next.js)
-npm run dev
-
-# Run backend only (Python FastAPI with uvicorn)
-npm run dev:backend
-
-# Run frontend only (Next.js)
-npm run dev:frontend
-```
-
-### Python Development
-
-```bash
-# ALWAYS activate venv first
-source .venv/bin/activate
-
-# Generate TypeScript types from Python models (run after changing Python types)
-npm run generate:types
-
-# Validate type synchronization
-npm run validate:types
-
-# Format Python code (black)
-npm run format:py
-
-# Lint + type check (ruff + mypy)
-npm run lint:py
-
-# Run Python tests (pytest)
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-### Database
-
-```bash
-# Initialize SQLite database
-npm run setup:db
-
-# Run migrations (to be implemented)
-npm run migrate
-```
-
-### Building for Production
-
-```bash
-# Build frontend (includes type generation)
-npm run build
-```
-
-### Pre-commit Hooks
-
-Pre-commit hooks automatically run:
-- Code formatting (black)
-- Linting (ruff)
-- Type checking (mypy)
-- Type validation (TypeScript ↔ Python sync)
-
-```bash
-# Install hooks (one-time)
-pre-commit install
-
-# Run hooks manually
-pre-commit run --all-files
-```
+1. **Import your component inventory**: `python src/backend/services/excel_importer.py myInventory.csv`
+2. **Browse PedalPCB circuits**: Visit http://localhost:3000
+3. **Start building**: Follow the 10-stage workflow
 
 ## Documentation
 
-### Python Development
-- [PYTHON_SETUP.md](PYTHON_SETUP.md) - **START HERE** - Comprehensive Python development guide
-- [TOOLING_DECISIONS.md](TOOLING_DECISIONS.md) - All tooling decisions explained and logged
+### For Developers
+- **[PYTHON_DEVELOPMENT.md](PYTHON_DEVELOPMENT.md)** - Complete Python setup, tooling, decisions, and workflow
+- **[CLAUDE.md](CLAUDE.md)** - Project guidelines for Claude Code development
+- **[CLAUDE_CODE_TOOLS.md](CLAUDE_CODE_TOOLS.md)** - Claude Code development tools
+- **[docs/ELECTRONICS_REFERENCE.md](docs/ELECTRONICS_REFERENCE.md)** - Guitar pedal electronics knowledge
 
-### Project Documentation
-- [CLAUDE.md](CLAUDE.md) - **Main project guide** for Claude Code (critical requirements, architecture, patterns)
-- [Setup Guide](docs/SETUP.md) - Detailed installation instructions (to be created)
-- [Architecture](docs/ARCHITECTURE.md) - Technical architecture overview (to be created)
-- [API Reference](docs/API.md) - API endpoints documentation (to be created)
-- [Agents Guide](docs/AGENTS.md) - Custom agent documentation (to be created)
-- [User Guide](docs/USER_GUIDE.md) - How to use the application (to be created)
-
-### Implementation
-- [Implementation Plan](.claude/plans/sunny-stargazing-garden.md) - Complete Phase 1-6 plan
-
-## Custom Claude Code Tools
-
-This project includes reusable Claude Code sub-agents and skills (all in **Python**):
-
-### Skills (`.claude/skills/` - Python)
-- **excel-importer** ([importer.py](/.claude/skills/excel-importer/importer.py)) - Import inventory from CSV (250 lines)
-  ```bash
-  python .claude/skills/excel-importer/importer.py myInventory.csv --preview
-  ```
-- **component-inventory** ([service.py](/.claude/skills/component-inventory/service.py)) - Manage component stock (200 lines)
-  ```bash
-  python .claude/skills/component-inventory/service.py search "10k"
-  python .claude/skills/component-inventory/service.py stats
-  ```
-- **bom-manager** ([service.py](/.claude/skills/bom-manager/service.py)) - Bill of materials management (220 lines)
-  ```bash
-  python .claude/skills/bom-manager/service.py validate <circuit-id>
-  python .claude/skills/bom-manager/service.py shopping-list <circuit-id>
-  ```
-
-### Sub-Agents (`.claude/agents/` - To Be Built)
-- **pedalpcb-scraper** - PedalPCB.com pedal browser (Python)
-- **schematic-analyzer** - Multi-pass AI vision for schematics (Python + OpenCV)
-- **breadboard-layout** - Optimal layout generation (Python + Fritzing export)
-
-**Reusability**: These tools work with any electronics project!
+### For Users
+- **[User Guide](docs/USER_GUIDE.md)** - How to use the application (to be created)
+- **[Architecture](docs/ARCHITECTURE.md)** - Technical architecture overview (to be created)
+- **[API Reference](docs/API.md)** - API endpoints documentation (to be created)
 
 ## Technology Stack
 
-### Frontend
-- **Framework**: Next.js 15 (App Router)
-- **UI**: React 18, Shadcn UI, TailwindCSS
-- **Language**: TypeScript (auto-generated from Python models)
-- **Type Safety**: Zero drift - types auto-generated from Python
+**Frontend:**
+- Next.js 15 (App Router), React 18, Shadcn UI, TailwindCSS
+- TypeScript (auto-generated from Python models)
 
-### Backend (Python 3.11+)
-- **Framework**: FastAPI (API server)
-- **Agents**: Google ADK (Agent Development Kit)
-- **Type System**: Pydantic v2 (single source of truth)
-- **Data Processing**: pandas, BeautifulSoup4
-- **Vision AI**: OpenCV, Pillow (schematic analysis)
-- **Testing**: pytest
-- **Web Search**: Brave Search API (for application agents)
+**Backend:**
+- Python 3.11+ with FastAPI
+- Google ADK (Agent Development Kit)
+- Pydantic v2 (type system, single source of truth)
 
-### Database
-- **Development**: SQLite
-- **Production**: PostgreSQL (migration-ready)
+**Database:**
+- SQLite (development)
+- PostgreSQL-ready (production migration path)
 
-### Python Tooling
-- **Environment**: uv (10-100x faster than pip)
-- **Dependencies**: pyproject.toml (PEP 621 standard)
-- **Linting**: ruff (Rust-based, combines 10+ tools)
-- **Type Checking**: mypy (Pydantic support)
-- **Formatting**: black (100 char lines)
-- **Pre-commit**: Automated quality checks
+**Python Tooling:**
+- uv (environment & dependencies)
+- ruff (linting), mypy (type checking), black (formatting)
+- pytest (testing), pre-commit (automated quality checks)
 
-### AI Models
-- **Claude** (Anthropic) - Schematic analysis, layout generation
-- **Gemini** (Google) - Agent orchestration
+**AI Models:**
+- Claude (Anthropic) - Schematic analysis, layout generation
+- Gemini (Google) - Agent orchestration
 
-### Additional Tools
-- **Fritzing** - Breadboard layout export (.fzz + PNG)
+## Development
 
-## Contributing
+### Common Commands
 
-See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development guidelines.
+```bash
+# Python development
+npm run generate:types    # Generate TypeScript types from Python models
+npm run format:py         # Format and lint Python code
+npm run lint:py           # Run linting and type checking
+npm test                  # Run pytest tests
 
-## License
+# Application
+npm run dev               # Run both frontend and backend
+npm run dev:frontend      # Run Next.js only
+npm run dev:backend       # Run FastAPI only
 
-[Your License Here]
+# Database
+npm run setup:db          # Initialize database
+npm run migrate           # Run migrations (to be implemented)
+```
 
-## Acknowledgments
+**For detailed Python development guide, see [PYTHON_DEVELOPMENT.md](PYTHON_DEVELOPMENT.md)**
 
-- PedalPCB.com for pedal specifications
-- Google ADK team for the agentic framework
-- DIY pedal building community
+### Project Structure
 
----
+```
+PedalBuild/
+├── src/
+│   ├── backend/          # Python FastAPI + Google ADK agents
+│   │   ├── agents/       # Google ADK agents
+│   │   └── services/     # Business logic services
+│   ├── frontend/         # Next.js application
+│   │   └── app/          # App Router pages
+│   ├── models/           # TypeScript types (auto-generated)
+│   └── db/               # Database schema & migrations
+├── data/                 # Local storage
+│   ├── db/               # SQLite database
+│   ├── uploads/          # PDFs, schematics, photos
+│   └── exports/          # Generated layouts & graphics
+├── docs/                 # Documentation
+└── tests/                # Test suites
+```
 
 ## Status
 
@@ -267,19 +160,37 @@ See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development guidelines.
 - ✅ Python backend architecture established
 - ✅ Pydantic models with auto-generated TypeScript (551 lines)
 - ✅ Python tooling setup (uv, pyproject.toml, ruff, mypy, black, pytest)
-- ✅ 3 custom Python skills (Excel Importer, Component Inventory, BOM Manager)
+- ✅ 3 application services (Excel Importer, Component Inventory, BOM Manager)
+- ✅ 8 Claude Code development tools (skills + sub-agents)
 - ✅ Pre-commit hooks for automated quality checks
 - ✅ Type synchronization system (zero drift)
+- ✅ Comprehensive documentation
 
 **Next (Phase 2)**:
 - Initialize Next.js 15 project
 - Create FastAPI backend server
 - Setup SQLite database with schema
 - Build Google ADK orchestrator
-- Implement 3 critical agents (PedalPCB Scraper, Schematic Analyzer, Breadboard Layout)
+- Implement core workflow agents
 
 **Version**: 0.1.0-alpha
 
-**Architecture**: Next.js (TypeScript) frontend + Python (FastAPI) backend with auto-generated types
+## Contributing
+
+See [CONTRIBUTING.md](docs/CONTRIBUTING.md) for development guidelines (to be created).
+
+## License
+
+Private repository for personal use.
+
+## Acknowledgments
+
+- PedalPCB.com for pedal specifications
+- Google ADK team for the agentic framework
+- DIY pedal building community
+
+---
+
+**Repository**: https://github.com/Diz312/PedalBuild
 
 For questions or support, open an issue on GitHub.
