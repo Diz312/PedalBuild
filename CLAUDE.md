@@ -42,7 +42,7 @@ User has a SPECIFIC custom breadboard platform that MUST be used:
 Power jumpers: INPUT, GND, 3.3V, REF, 5V, 9V, -9V, 18V, OUTPUT
 2× 1/4" jacks + effect bypass switch
 ```
-See `.claude/agents/breadboard-layout.md` for full specification.
+Full specification in implementation plan.
 
 ### 4. Output Formats
 - **Breadboard layouts**: Fritzing (.fzz) + PNG images
@@ -52,7 +52,7 @@ See `.claude/agents/breadboard-layout.md` for full specification.
 ### 5. Excel Inventory Import
 - User has 181 components in custom 14-column CSV format
 - Format: Category, SubType, HumanReadableValue, NumericBaseValue, UnitType, Footprint, Voltage, Quantity, etc.
-- See `.claude/skills/excel-importer/SKILL.md` for details
+- See `src/backend/services/excel_importer.py` for implementation
 
 ---
 
@@ -184,13 +184,18 @@ npm test                  # Run tests
 - **TypeScript Types**: `src/models/types.generated.ts` (auto-generated, 551 lines)
 - **Database**: `data/db/pedalbuild.db` (runtime)
 
-### Custom Tools (Python)
-- **Excel Importer**: `.claude/skills/excel-importer/importer.py` (250 lines)
-- **Component Inventory**: `.claude/skills/component-inventory/service.py` (200 lines)
-- **BOM Manager**: `.claude/skills/bom-manager/service.py` (220 lines)
-- **PedalPCB Scraper**: `.claude/agents/pedalpcb-scraper/` (to be built)
-- **Schematic Analyzer**: `.claude/agents/schematic-analyzer.md` (to be built)
-- **Breadboard Layout**: `.claude/agents/breadboard-layout.md` (to be built)
+### Application Services (Python)
+- **Excel Importer**: `src/backend/services/excel_importer.py` (250 lines)
+- **Component Inventory**: `src/backend/services/component_inventory.py` (200 lines)
+- **BOM Manager**: `src/backend/services/bom_manager.py` (220 lines)
+- **PedalPCB Scraper**: `src/backend/agents/pedalpcb_scraper.py` (to be built - Phase 3)
+- **Schematic Analyzer**: `src/backend/agents/schematic_analyzer.py` (to be built - Phase 3)
+- **Breadboard Layout**: `src/backend/agents/breadboard_layout.py` (to be built - Phase 3)
+
+### Claude Code Development Tools
+- **Universal Skills**: `~/.claude/skills/` (test-runner, format-and-lint, db-inspector, type-sync-validator)
+- **Universal Sub-Agents**: `~/.claude/agents/` (framework-verifier, schema-designer, test-writer, api-integrator)
+- **See**: [CLAUDE_CODE_TOOLS.md](CLAUDE_CODE_TOOLS.md) for complete documentation
 
 ### Python Tooling
 - **Dependencies**: `pyproject.toml` (PEP 621 standard)
@@ -324,10 +329,10 @@ export interface SchematicAnalysisData {
 ### Component Inventory
 ```bash
 # CLI usage (Python)
-python .claude/skills/component-inventory/service.py list
-python .claude/skills/component-inventory/service.py search "10k"
-python .claude/skills/component-inventory/service.py low-stock
-python .claude/skills/component-inventory/service.py stats
+python src/backend/services/component_inventory.py list
+python src/backend/services/component_inventory.py search "10k"
+python src/backend/services/component_inventory.py low-stock
+python src/backend/services/component_inventory.py stats
 ```
 
 ```python
@@ -343,11 +348,11 @@ low_stock = service.get_low_stock()
 ### BOM Manager
 ```bash
 # CLI usage (Python)
-python .claude/skills/bom-manager/service.py show <circuit-id>
-python .claude/skills/bom-manager/service.py validate <circuit-id>
-python .claude/skills/bom-manager/service.py shopping-list <circuit-id>
-python .claude/skills/bom-manager/service.py stats <circuit-id>
-python .claude/skills/bom-manager/service.py export <circuit-id>  # CSV output
+python src/backend/services/bom_manager.py show <circuit-id>
+python src/backend/services/bom_manager.py validate <circuit-id>
+python src/backend/services/bom_manager.py shopping-list <circuit-id>
+python src/backend/services/bom_manager.py stats <circuit-id>
+python src/backend/services/bom_manager.py export <circuit-id>  # CSV output
 ```
 
 ```python
@@ -362,8 +367,8 @@ shopping = service.get_shopping_list("triangulum-overdrive")
 ### Excel Importer
 ```bash
 # CLI usage (Python)
-python .claude/skills/excel-importer/importer.py myInventory.csv --preview
-python .claude/skills/excel-importer/importer.py myInventory.csv --db data/db/pedalbuild.db
+python src/backend/services/excel_importer.py myInventory.csv --preview
+python src/backend/services/excel_importer.py myInventory.csv --db data/db/pedalbuild.db
 ```
 
 ```python
@@ -586,13 +591,13 @@ npm run test:coverage         # Pytest with coverage
 npm run setup:db              # Initialize SQLite database
 
 # Python Skills CLI
-python .claude/skills/excel-importer/importer.py myInventory.csv --preview
-python .claude/skills/component-inventory/service.py list
-python .claude/skills/component-inventory/service.py search "10k"
-python .claude/skills/component-inventory/service.py stats
-python .claude/skills/component-inventory/service.py low-stock
-python .claude/skills/bom-manager/service.py show <circuit-id>
-python .claude/skills/bom-manager/service.py validate <circuit-id>
+python src/backend/services/excel_importer.py myInventory.csv --preview
+python src/backend/services/component_inventory.py list
+python src/backend/services/component_inventory.py search "10k"
+python src/backend/services/component_inventory.py stats
+python src/backend/services/component_inventory.py low-stock
+python src/backend/services/bom_manager.py show <circuit-id>
+python src/backend/services/bom_manager.py validate <circuit-id>
 ```
 
 ---
