@@ -1,0 +1,649 @@
+# PedalBuild Project Guide for Claude Code
+
+> **📖 Universal Standards**: This project follows the universal coding standards defined in `~/.claude/CODING_STANDARDS.md`. For questions about tooling, architecture patterns, or best practices, consult the universal standards first, then this project-specific guide.
+
+## Project Overview
+
+PedalBuild is an intelligent end-to-end application for streamlining guitar pedal building from inspiration through final showcase. It combines Google's ADK framework for agentic workflows with Next.js 15 for the frontend and **Python (FastAPI) backend**, using local-first architecture (SQLite).
+
+**Architecture**: Next.js (TypeScript) frontend + Python (FastAPI) backend with auto-generated TypeScript types
+
+**Status**: Phase 1 Complete (Foundation, Custom Tools, Python Tooling) ✅
+**Next**: Phase 2 (Main Application Development)
+
+---
+
+## Critical User Requirements ⚠️
+
+These are NON-NEGOTIABLE requirements from the user:
+
+### 1. PedalPCB.com Single Source
+- **ONLY** PedalPCB.com for pedal inspiration (not multiple sites)
+- Full catalog with ALL historical reviews stored locally
+- Offline-first: Browse without internet after initial scrape
+- Monthly scraping schedule
+- Embedded content viewing (configurable: always/toggle/separate tab)
+
+### 2. Schematic Analysis (CRITICAL)
+- **Multi-pass AI vision** (3+ passes for confidence)
+- **IMPERATIVE**: Components can be vertical OR horizontal orientation
+- Confidence scoring (0-1 scale)
+- Flag components with confidence < 0.7 for user review
+- Extract: type, value, reference designator (R1, C2, IC1), connections
+
+### 3. Dual-Board Breadboard Platform (CRITICAL)
+User has a SPECIFIC custom breadboard platform that MUST be used:
+```
+2 boards side-by-side
+63 columns × 10 rows (a-j) per section
+2 sections per board (through-hole gap between)
+4 power rails per board (2 positive, 2 negative)
+6 potentiometer slots at top
+Power jumpers: INPUT, GND, 3.3V, REF, 5V, 9V, -9V, 18V, OUTPUT
+2× 1/4" jacks + effect bypass switch
+```
+See `.claude/agents/breadboard-layout.md` for full specification.
+
+### 4. Output Formats
+- **Breadboard layouts**: Fritzing (.fzz) + PNG images
+- **BOM**: Organized by component type (resistors, capacitors, ICs, etc.)
+- **No vendor pricing**: User handles procurement themselves
+
+### 5. Excel Inventory Import
+- User has 181 components in custom 14-column CSV format
+- Format: Category, SubType, HumanReadableValue, NumericBaseValue, UnitType, Footprint, Voltage, Quantity, etc.
+- See `.claude/skills/excel-importer/SKILL.md` for details
+
+---
+
+## Python Tooling Setup ⚙️
+
+**IMPORTANT**: All Python development follows these standards:
+
+### Environment & Dependencies
+- **Environment Manager**: `uv` (10-100x faster than pip)
+- **Dependencies**: `pyproject.toml` (PEP 621 standard, not requirements.txt)
+- **Python Version**: 3.11+ required
+
+### Code Quality Tools
+- **Linting**: `ruff` (Rust-based, combines 10+ tools)
+- **Type Checking**: `mypy` (industry standard, Pydantic plugin)
+- **Formatting**: `black` (100 char lines)
+- **Testing**: `pytest`
+- **Pre-commit**: Automated hooks for type validation, formatting, linting
+
+### Type Synchronization
+- **Single Source of Truth**: Python Pydantic models in `src/models/types.py`
+- **Auto-Generated TypeScript**: `scripts/generate-types.py` → `src/models/types.generated.ts`
+- **Validation**: `scripts/validate-types.py` (runs in pre-commit hook)
+- **Result**: 551 lines of TypeScript auto-generated, zero type drift possible
+
+### Quick Start
+```bash
+# Setup
+uv venv && source .venv/bin/activate
+uv pip install -e '.[dev]'
+pre-commit install
+
+# Development
+npm run generate:types    # After changing Python models
+npm run format:py         # Format code
+npm run lint:py           # Lint + type check
+npm test                  # Run tests
+```
+
+**See**:
+- [PYTHON_SETUP.md](PYTHON_SETUP.md) - Developer setup guide
+- [TOOLING_DECISIONS.md](TOOLING_DECISIONS.md) - Why we chose these tools
+- [~/.claude/CODING_STANDARDS.md](~/.claude/CODING_STANDARDS.md) - Universal standards (Code Accuracy Protocol)
+
+---
+
+## Architecture Principles
+
+### 1. Local-First
+- SQLite for development (single file, easy backup)
+- All files stored locally (no S3/cloud initially)
+- Offline-first: App works without internet
+- PostgreSQL migration path for production
+
+### 2. Simplicity Over Abstraction
+- Clear separation: Frontend ↔ API ↔ Agents ↔ Storage
+- Minimal external dependencies
+- Flat repository pattern (not over-engineered)
+- Direct, readable code
+
+### 3. Build Reusable Tools First
+- Custom Claude Code skills and agents built BEFORE main app
+- Reusable across other electronics projects
+- Well-documented for future use
+
+### 4. Deterministic Where Possible
+- 5 out of 10 stages use deterministic orchestration
+- LLM agents ONLY for tasks requiring reasoning/creativity
+- Clear agent hierarchy
+
+### 5. 12-Factor Principles
+- Config via environment variables (.env)
+- Stateless processes (state in database)
+- Backing services abstracted (storage adapter pattern)
+- Structured logging to database
+
+---
+
+## Project Structure
+
+```
+/PedalBuild/
+├── .claude/
+│   ├── agents/                    # Custom sub-agents (to be built)
+│   │   ├── pedalpcb-scraper.md   # Catalog scraper
+│   │   ├── schematic-analyzer.md  # Multi-pass vision AI
+│   │   └── breadboard-layout.md   # Layout optimizer
+│   └── skills/                    # Custom skills (Python)
+│       ├── excel-importer/        # Import inventory from CSV
+│       │   ├── SKILL.md          # Documentation
+│       │   └── importer.py       # Python implementation (250 lines)
+│       ├── component-inventory/   # Manage component stock
+│       │   ├── SKILL.md          # Documentation
+│       │   └── service.py        # Python implementation (200 lines)
+│       └── bom-manager/           # Bill of materials management
+│           ├── SKILL.md          # Documentation
+│           └── service.py        # Python implementation (220 lines)
+├── src/
+│   ├── models/
+│   │   ├── types.py              # Python Pydantic models (450 lines)
+│   │   ├── types.generated.ts    # Auto-generated TypeScript (551 lines)
+│   │   └── types.ts              # TypeScript copy (for frontend)
+│   ├── db/
+│   │   └── schema.sql            # Database schema (25+ tables)
+│   ├── backend/                   # Python FastAPI + ADK (to be built)
+│   └── frontend/                  # Next.js app (to be built)
+├── scripts/
+│   ├── generate-types.py         # Python → TypeScript type generator
+│   └── validate-types.py         # Type sync validator
+├── data/
+│   ├── db/                        # SQLite database
+│   ├── uploads/                   # PDFs, schematics, photos
+│   └── exports/                   # Layouts, graphics
+├── docs/                          # Documentation
+├── pyproject.toml                 # Python dependencies & tool config
+├── .pre-commit-config.yaml        # Pre-commit hooks
+├── PYTHON_SETUP.md                # Python development guide
+├── TOOLING_DECISIONS.md           # Tooling decisions log
+└── README.md                      # Project overview
+```
+
+---
+
+## Key File Locations
+
+### Database & Types
+- **Schema**: `src/db/schema.sql` (25+ tables)
+- **Python Types**: `src/models/types.py` (Pydantic models, 450 lines)
+- **TypeScript Types**: `src/models/types.generated.ts` (auto-generated, 551 lines)
+- **Database**: `data/db/pedalbuild.db` (runtime)
+
+### Custom Tools (Python)
+- **Excel Importer**: `.claude/skills/excel-importer/importer.py` (250 lines)
+- **Component Inventory**: `.claude/skills/component-inventory/service.py` (200 lines)
+- **BOM Manager**: `.claude/skills/bom-manager/service.py` (220 lines)
+- **PedalPCB Scraper**: `.claude/agents/pedalpcb-scraper/` (to be built)
+- **Schematic Analyzer**: `.claude/agents/schematic-analyzer.md` (to be built)
+- **Breadboard Layout**: `.claude/agents/breadboard-layout.md` (to be built)
+
+### Python Tooling
+- **Dependencies**: `pyproject.toml` (PEP 621 standard)
+- **Type Generator**: `scripts/generate-types.py`
+- **Type Validator**: `scripts/validate-types.py`
+- **Pre-commit Config**: `.pre-commit-config.yaml`
+
+### Documentation
+- **Universal Standards**: `~/.claude/CODING_STANDARDS.md` (all projects)
+- **Python Setup**: `PYTHON_SETUP.md` (developer guide)
+- **Tooling Decisions**: `TOOLING_DECISIONS.md` (all decisions logged)
+- **Setup**: `README.md` (getting started)
+- **Plan**: `.claude/plans/sunny-stargazing-garden.md` (implementation plan)
+
+---
+
+## Database Schema Patterns
+
+### Key Tables
+```sql
+-- PedalPCB Integration
+pedalpcb_catalog         -- Full pedal catalog
+pedalpcb_reviews         -- ALL historical reviews
+scraping_jobs           -- Scraping job tracking
+
+-- Component Management
+components              -- Component library with inventory
+circuit_bom            -- BOM items with confidence scores
+
+-- Project Workflow
+projects               -- User build projects
+project_stages        -- Workflow stage tracking (10 stages)
+breadboard_layouts    -- Layout designs
+
+-- State Management
+agent_state           -- ADK session/user/global state
+workflow_logs         -- Execution logs
+```
+
+### Important Fields
+- `confidence_score` in `circuit_bom` - From schematic analysis (0-1)
+- `voltage` in `components` - Added for user's inventory format
+- `is_critical` in `circuit_bom` - Component affects tone significantly
+- `images_json`, `specifications_json` in `pedalpcb_catalog` - JSON columns
+
+---
+
+## Type System
+
+**Single Source of Truth**: Python Pydantic models in `src/models/types.py`
+
+**Auto-Generated TypeScript**: `scripts/generate-types.py` → `src/models/types.generated.ts`
+
+### Python Pydantic Models (Source)
+```python
+class ComponentType(str, Enum):
+    RESISTOR = "resistor"
+    CAPACITOR = "capacitor"
+    IC = "ic"
+    # ... 11 types total
+
+class Component(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    type: ComponentType
+    quantity_in_stock: int = Field(default=0, ge=0)  # Validation
+    voltage: Optional[str] = None
+    # ... 14 fields total
+```
+
+### TypeScript Types (Auto-Generated)
+```typescript
+export type ComponentType = "resistor" | "capacitor" | "ic" | ...;
+export type PedalCategory = "fuzz" | "distortion" | "overdrive" | ...;
+export type WorkflowStage = "inspiration" | "spec_download" | ...;
+
+export interface Component {
+  id: string;
+  type: ComponentType;
+  quantity_in_stock: number;
+  voltage: string | null;
+  // ...
+}
+```
+
+### Discriminated Unions (Both Languages)
+```python
+# Python
+class SchematicAnalysisData(BaseModel):
+    type: Literal["schematic_analysis"] = "schematic_analysis"
+    schematic_path: str
+    components: List[SchematicComponent]
+```
+
+```typescript
+// Auto-generated TypeScript
+export interface SchematicAnalysisData {
+  type: "schematic_analysis";
+  schematic_path: string;
+  components: SchematicComponent[];
+}
+```
+
+### Key Models
+- `Component` - Inventory item with stock tracking
+- `CircuitBOMItem` - BOM with confidence & substitution info
+- `Project` & `ProjectStage` - Workflow management
+- `BreadboardLayoutData` - Dual-board platform layout
+- `PedalPCBCatalogItem` - Pedal metadata with reviews
+
+---
+
+## Workflow Stages
+
+1. **Inspiration** - Browse PedalPCB.com by type
+2. **Spec Download** - Download build documentation PDF
+3. **Schematic Analysis** - Multi-pass AI vision (NEW & CRITICAL)
+4. **Inventory Check** - Match against local inventory
+5. **BOM Generation** - Organize by component type
+6. **Breadboard Layout** - AI-optimized dual-board layout
+7. **Prototype Testing** - Guided testing and validation
+8. **Final Assembly** - Enclosure assembly
+9. **Graphics Design** - AI-assisted graphics
+10. **Showcase** - Share with community
+
+---
+
+## Custom Tools Usage (Python)
+
+### Component Inventory
+```bash
+# CLI usage (Python)
+python .claude/skills/component-inventory/service.py list
+python .claude/skills/component-inventory/service.py search "10k"
+python .claude/skills/component-inventory/service.py low-stock
+python .claude/skills/component-inventory/service.py stats
+```
+
+```python
+# Python code usage
+from component_inventory.service import ComponentInventoryService
+
+service = ComponentInventoryService("data/db/pedalbuild.db")
+components = service.search_components("10k")
+stats = service.get_statistics()
+low_stock = service.get_low_stock()
+```
+
+### BOM Manager
+```bash
+# CLI usage (Python)
+python .claude/skills/bom-manager/service.py show <circuit-id>
+python .claude/skills/bom-manager/service.py validate <circuit-id>
+python .claude/skills/bom-manager/service.py shopping-list <circuit-id>
+python .claude/skills/bom-manager/service.py stats <circuit-id>
+python .claude/skills/bom-manager/service.py export <circuit-id>  # CSV output
+```
+
+```python
+# Python code usage
+from bom_manager.service import BOMManagerService
+
+service = BOMManagerService("data/db/pedalbuild.db")
+validation = service.validate_bom("triangulum-overdrive")
+shopping = service.get_shopping_list("triangulum-overdrive")
+```
+
+### Excel Importer
+```bash
+# CLI usage (Python)
+python .claude/skills/excel-importer/importer.py myInventory.csv --preview
+python .claude/skills/excel-importer/importer.py myInventory.csv --db data/db/pedalbuild.db
+```
+
+```python
+# Python code usage
+from excel_importer.importer import InventoryImporter
+
+with InventoryImporter("data/db/pedalbuild.db") as importer:
+    result = importer.import_components("myInventory.csv")
+    print(f"Imported: {result['inserted']} components")
+```
+
+---
+
+## Important Patterns
+
+### Component Matching Intelligence
+The inventory system has domain knowledge:
+- **IC Substitutions**: JRC4558 ↔ TL072 (with tone impact notes)
+- **Resistor Tolerance**: 1% matches 5% requirement (better)
+- **Value Normalization**: 100n = 100nF = 0.1uF
+- **IC Families**: TL07x series recognition
+
+### Multi-Pass Schematic Analysis
+1. **Pass 1**: Symbol identification (30-40% confidence)
+2. **Pass 2**: Value extraction (60-75% confidence)
+3. **Pass 3**: Connection mapping (80-95% confidence)
+4. **Pass 4**: Low-confidence flagging (<0.7)
+
+### Breadboard Layout Optimization
+1. **Phase 1**: Component grouping by function
+2. **Phase 2**: Placement (left-to-right signal flow)
+3. **Phase 3**: Wire routing (minimize crossings)
+4. **Phase 4**: Fritzing export (.fzz)
+5. **Phase 5**: PNG export (300 DPI)
+
+---
+
+## Data Flow Example
+
+### Building a Pedal (Complete Flow)
+```
+1. User selects "Overdrive" category
+   → Query: SELECT * FROM pedalpcb_catalog WHERE category='overdrive'
+
+2. User selects "Triangulum" pedal
+   → Download build doc PDF to data/uploads/specs/
+
+3. Schematic Vision Analyzer (Multi-pass AI)
+   → Extract components with confidence scores
+   → Output: JSON with 24 components
+   → Flag 2 low-confidence items for user review
+
+4. BOM Manager
+   → Create BOM from schematic analysis
+   → Store in circuit_bom table
+
+5. Inventory Check
+   → Match against components table
+   → Result: 18/24 available, 6 missing
+   → Suggest TL072 substitute for JRC4558
+
+6. BOM Generation
+   → Organize by type: 8 resistors, 7 caps, 2 ICs, 3 transistors, 4 diodes
+   → Generate shopping list for missing items
+
+7. Breadboard Layout Agent
+   → Optimize for dual-board platform
+   → Place ICs, route wires, assign pots to top 6 slots
+   → Output: .fzz + .png + .json + assembly.md
+
+8. User assembles on breadboard following layout
+
+9. Test, assemble in enclosure, design graphics, showcase
+```
+
+---
+
+## Technology Stack
+
+### Current (Phase 1 Complete)
+- **Backend Language**: Python 3.11+ (FastAPI)
+- **Frontend Language**: TypeScript (Next.js 15)
+- **Type System**: Pydantic (Python) → Auto-generated TypeScript
+- **Database**: SQLite with comprehensive schema
+- **Skills**: 3 custom Python skills (Excel, Inventory, BOM)
+- **Tooling**: uv, pyproject.toml, ruff, mypy, black, pytest, pre-commit
+
+### Python Backend Stack
+- **Framework**: FastAPI (API server)
+- **Type Validation**: Pydantic v2
+- **Database**: sqlite3 (Python standard library)
+- **Data Processing**: pandas (CSV parsing)
+- **Vision**: OpenCV + Pillow (schematic analysis)
+- **Web Scraping**: BeautifulSoup4
+- **Testing**: pytest
+- **AI**: Google ADK (Python)
+
+### TypeScript Frontend Stack (To Build - Phase 2)
+- **Framework**: Next.js 15 (App Router)
+- **UI Library**: React 18
+- **Components**: Shadcn UI
+- **Styling**: Tailwind CSS
+- **Type Safety**: Auto-generated from Python
+
+### Agents (To Build - Phase 2)
+- **3 CRITICAL agents**: PedalPCB Scraper, Schematic Analyzer, Breadboard Layout
+- **Framework**: Google ADK (Python)
+- **AI Models**: Claude (Anthropic), Gemini (Google)
+- **Tools**: Fritzing (layouts), SQLite (storage)
+
+---
+
+## Development Guidelines
+
+### When Working on Python Backend
+- **Always activate venv first**: `source .venv/bin/activate`
+- **Type hints required**: All functions must have type annotations
+- **Pydantic models**: Single source of truth for types
+- **After changing types**: Run `npm run generate:types`
+- **Code style**: Use `black` (auto-format) and `ruff` (lint)
+- **Testing**: Write pytest tests for all business logic
+- **ADK agents**: Follow hierarchy (Root → Sequential → Parallel → LLM)
+- **Tools**: Clear name, description, inputSchema, execute()
+
+### When Working on Frontend
+- Use Next.js 15 App Router (not Pages Router)
+- Server Components by default, Client Components when needed
+- Shadcn UI for components
+- Type-safe with auto-generated TypeScript types
+- **Never manually edit types.generated.ts**
+
+### When Working with Database
+- Always use parameterized queries (SQL injection prevention)
+- JSON columns for flexible nested data
+- Timestamps auto-update via triggers
+- Foreign keys with CASCADE for data integrity
+- **Python**: Use sqlite3 with context managers
+
+### When Writing Agents (Python)
+- LLM agents for reasoning/creativity only
+- Deterministic agents (Sequential, Parallel) for workflow
+- Clear tool descriptions for agent understanding
+- Context files provide domain knowledge
+- State management: session (temp), user (persistent), global (shared)
+- AG-UI protocol for streaming updates to frontend
+
+### Type Synchronization
+- **Python models are source of truth**
+- **Auto-generate TypeScript**: `npm run generate:types`
+- **Validate sync**: `npm run validate:types`
+- **Pre-commit hook**: Validates types automatically
+- **Never manually edit**: `types.generated.ts` or `types.ts`
+
+---
+
+## Git Workflow
+
+### What to Commit
+- Source code (src/)
+- Configuration files (.env.example, tsconfig.json)
+- Documentation (docs/, README.md, CLAUDE.md)
+- Database schema (src/db/schema.sql)
+- Custom tools (.claude/)
+
+### What NOT to Commit
+- Database files (data/db/*.db)
+- Environment secrets (.env.local)
+- Uploads (data/uploads/)
+- Generated files (data/exports/)
+- Node modules (node_modules/)
+
+---
+
+## Testing Strategy
+
+### Unit Tests
+- Component matching algorithms
+- BOM validation logic
+- State transformations
+
+### Integration Tests
+- ADK agent → Repository → SQLite
+- Frontend → API → ADK workflow
+- File upload → Storage → Database
+
+### End-to-End Test
+Complete workflow with real PedalPCB pedal:
+1. Import inventory from user's CSV
+2. Scrape Triangulum Overdrive from PedalPCB
+3. Analyze schematic (multi-pass vision)
+4. Validate BOM against inventory
+5. Generate breadboard layout
+6. Verify .fzz and .png outputs
+
+---
+
+## Common Commands
+
+```bash
+# Initial Setup
+uv venv                       # Create virtual environment
+source .venv/bin/activate     # Activate venv
+uv pip install -e '.[dev]'    # Install all dependencies
+pre-commit install            # Setup pre-commit hooks
+
+# Development
+npm run dev                    # Start frontend + backend
+npm run dev:backend           # Python FastAPI backend (uvicorn)
+npm run dev:frontend          # Next.js frontend
+
+# Python Development
+npm run generate:types        # Generate TypeScript from Python models
+npm run validate:types        # Validate type sync
+npm run format:py             # Format Python code (black)
+npm run lint:py               # Lint + type check (ruff + mypy)
+npm test                      # Run pytest tests
+npm run test:coverage         # Pytest with coverage
+
+# Database
+npm run setup:db              # Initialize SQLite database
+
+# Python Skills CLI
+python .claude/skills/excel-importer/importer.py myInventory.csv --preview
+python .claude/skills/component-inventory/service.py list
+python .claude/skills/component-inventory/service.py search "10k"
+python .claude/skills/component-inventory/service.py stats
+python .claude/skills/component-inventory/service.py low-stock
+python .claude/skills/bom-manager/service.py show <circuit-id>
+python .claude/skills/bom-manager/service.py validate <circuit-id>
+```
+
+---
+
+## User Preferences
+
+- **Permission**: Full autonomy to write files, run commands (no asking)
+- **Communication**: Concise, no emojis unless requested
+- **Commits**: Only when explicitly asked
+- **Approach**: Build autonomously per implementation plan
+- **Priority**: Functionality over polish, MVP first
+
+---
+
+## Next Steps (Phase 2)
+
+1. Initialize Next.js 15 project
+2. Setup SQLite database (run schema.sql)
+3. Create FastAPI backend server with Google ADK (Python)
+4. Build root orchestrator agent (Python)
+5. Implement AG-UI streaming server
+6. Build frontend UI with Shadcn
+7. Test end-to-end with sample circuit
+
+---
+
+## Useful References
+
+### Implementation & Planning
+- **Implementation Plan**: `.claude/plans/sunny-stargazing-garden.md`
+- **Universal Standards**: `~/.claude/CODING_STANDARDS.md` (Code Accuracy Protocol, all standards)
+
+### Type System & Database
+- **Python Types**: `src/models/types.py` (Pydantic models, source of truth)
+- **TypeScript Types**: `src/models/types.generated.ts` (auto-generated)
+- **Database Schema**: `src/db/schema.sql`
+- **User's Inventory**: `data/imports/myInventory.csv` (181 components)
+
+### Python Development
+- **Setup Guide**: `PYTHON_SETUP.md` (comprehensive developer guide)
+- **Tooling Decisions**: `TOOLING_DECISIONS.md` (all decisions logged)
+- **Code Accuracy**: Follow `~/.claude/CODING_STANDARDS.md` - use WebSearch/WebFetch to verify current patterns before coding
+
+### Configuration
+- **Python Dependencies**: `pyproject.toml` (PEP 621 standard)
+- **Pre-commit Hooks**: `.pre-commit-config.yaml`
+- **Package Scripts**: `package.json`
+
+---
+
+**Last Updated**: 2026-02-14 (Phase 1 Complete + Python Tooling Setup)
+**Phase**: 1/6 Complete ✅
+**Architecture**: Next.js (TypeScript) + Python (FastAPI) with auto-generated types
+**Ready For**: Phase 2 - Main Application Development

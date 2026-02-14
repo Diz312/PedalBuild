@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.so
+
+# Node
+node_modules/
+.next/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Data & Uploads (user-specific)
+data/db/*.db
+data/uploads/
+data/exports/
+data/imports/
+
+# Secrets
+.env
+.env.local
+.env.*.local
+
+# Tests & Coverage
+.pytest_cache/
+coverage/
+htmlcov/
+.coverage
+
+# Documentation (optional - include if needed)
+docs/
+*.md
+
+# CI/CD
+.github/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist/
+build/
+*.egg
