@@ -8,8 +8,10 @@ PedalBuild is an intelligent end-to-end application for streamlining guitar peda
 
 **Architecture**: Next.js (TypeScript) frontend + Python (FastAPI) backend with auto-generated TypeScript types
 
-**Status**: Phase 1 Complete (Foundation, Custom Tools, Python Tooling) ✅
-**Next**: Phase 2 (Main Application Development)
+**Status**: Phase 2 Complete (Backend API + Database Foundation) ✅
+**Next**: Phase 3 (Frontend Development - Next.js 15 + Shadcn UI)
+
+> **📋 Quick Resume**: See [PROJECT_STATUS.md](PROJECT_STATUS.md) for current status and how to continue
 
 ---
 
@@ -93,8 +95,7 @@ npm test                  # Run tests
 ```
 
 **See**:
-- [PYTHON_SETUP.md](PYTHON_SETUP.md) - Developer setup guide
-- [TOOLING_DECISIONS.md](TOOLING_DECISIONS.md) - Why we chose these tools
+- [PYTHON_DEVELOPMENT.md](PYTHON_DEVELOPMENT.md) - Complete Python guide (setup, tooling, decisions)
 - [~/.claude/CODING_STANDARDS.md](~/.claude/CODING_STANDARDS.md) - Universal standards (Code Accuracy Protocol)
 
 ---
@@ -321,6 +322,37 @@ export interface SchematicAnalysisData {
 8. **Final Assembly** - Enclosure assembly
 9. **Graphics Design** - AI-assisted graphics
 10. **Showcase** - Share with community
+
+---
+
+## REST API Endpoints (Phase 2 Complete) ✅
+
+**Base URL**: http://localhost:8000 (when running `npm run dev:backend`)
+**API Docs**: http://localhost:8000/docs (interactive Swagger UI)
+
+### Component Inventory API (`/api/inventory`)
+- `GET /` - List all components (with optional type filter)
+- `GET /search?q=` - Search by value/name/part number
+- `GET /{component_id}` - Get component by ID
+- `GET /low-stock` - Get low stock components
+- `GET /stats` - Inventory statistics
+- `PATCH /{component_id}/quantity` - Update quantity (delta)
+
+### BOM Management API (`/api/bom`)
+- `GET /{circuit_id}` - Get complete BOM
+- `GET /{circuit_id}/by-type` - BOM organized by type
+- `POST /{circuit_id}/items` - Add BOM item
+- `GET /{circuit_id}/validate` - Validate against inventory
+- `GET /{circuit_id}/shopping-list` - Missing components
+- `GET /{circuit_id}/stats` - BOM statistics
+- `GET /{circuit_id}/export` - Export to CSV
+
+### CSV Import API (`/api/import`)
+- `POST /inventory?preview=true` - Import CSV (preview mode)
+- `GET /template` - Download CSV template
+- `GET /format` - CSV format documentation
+
+**Full API Reference**: See [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md)
 
 ---
 
@@ -612,15 +644,33 @@ python src/backend/services/bom_manager.py validate <circuit-id>
 
 ---
 
-## Next Steps (Phase 2)
+## Phase 2 Complete ✅
 
-1. Initialize Next.js 15 project
-2. Setup SQLite database (run schema.sql)
-3. Create FastAPI backend server with Google ADK (Python)
-4. Build root orchestrator agent (Python)
-5. Implement AG-UI streaming server
-6. Build frontend UI with Shadcn
-7. Test end-to-end with sample circuit
+**Backend API Foundation - Completed 2026-02-16**:
+1. ✅ SQLite database initialized (19 tables, 3 views, 5 triggers)
+2. ✅ FastAPI backend server with CORS, logging, error handling
+3. ✅ Database connection utilities (pooling, transactions)
+4. ✅ 16 REST API endpoints (inventory, BOM, CSV import)
+5. ✅ 24 integration tests (all passing)
+6. ✅ Complete API documentation
+
+**Backend Ready**: http://localhost:8000 (start with `npm run dev:backend`)
+**API Docs**: http://localhost:8000/docs (Swagger UI)
+
+---
+
+## Next Steps (Phase 3 - Frontend)
+
+1. Initialize Next.js 15 project with App Router
+2. Setup Shadcn UI component library
+3. Create layout and navigation
+4. Build inventory management UI (list, search, edit)
+5. Build BOM management UI (validate, shopping list)
+6. Build CSV import UI (upload, preview)
+7. Integrate with FastAPI backend
+8. Test complete user workflow
+
+**After Phase 3**: Google ADK agents (Phase 4) - PedalPCB scraper, schematic analyzer, layout optimizer
 
 ---
 
@@ -637,8 +687,7 @@ python src/backend/services/bom_manager.py validate <circuit-id>
 - **User's Inventory**: `data/imports/myInventory.csv` (181 components)
 
 ### Python Development
-- **Setup Guide**: `PYTHON_SETUP.md` (comprehensive developer guide)
-- **Tooling Decisions**: `TOOLING_DECISIONS.md` (all decisions logged)
+- **Development Guide**: `PYTHON_DEVELOPMENT.md` (setup, tooling, decisions, workflow)
 - **Code Accuracy**: Follow `~/.claude/CODING_STANDARDS.md` - use WebSearch/WebFetch to verify current patterns before coding
 
 ### Configuration
@@ -648,7 +697,10 @@ python src/backend/services/bom_manager.py validate <circuit-id>
 
 ---
 
-**Last Updated**: 2026-02-14 (Phase 1 Complete + Python Tooling Setup)
-**Phase**: 1/6 Complete ✅
+**Last Updated**: 2026-02-16 (Phase 2 Complete - Backend API + Database Foundation)
+**Phase**: 2/6 Complete ✅
 **Architecture**: Next.js (TypeScript) + Python (FastAPI) with auto-generated types
-**Ready For**: Phase 2 - Main Application Development
+**Backend**: 16 REST API endpoints, 24 tests passing, SQLite initialized
+**Ready For**: Phase 3 - Frontend Development (Next.js 15 + Shadcn UI)
+
+> **📋 See [PROJECT_STATUS.md](PROJECT_STATUS.md) for detailed status and resume guide**

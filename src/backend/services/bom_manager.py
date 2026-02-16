@@ -91,8 +91,7 @@ class BOMManagerService:
         bom_items = self.get_bom(circuit_id)
 
         # Import component inventory service
-        sys.path.insert(0, str(Path(__file__).parent.parent / "component-inventory"))
-        from service import ComponentInventoryService
+        from .component_inventory import ComponentInventoryService
 
         inventory_service = ComponentInventoryService(self.db_path)
 

@@ -111,6 +111,7 @@ CREATE TABLE components (
     minimum_quantity INTEGER DEFAULT 0,  -- Alert when stock falls below this
     unit_price REAL,
     location TEXT,                       -- Storage location (drawer, bin, etc.)
+    voltage TEXT,                        -- e.g., '16V', '50V' (for capacitors, etc.)
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
