@@ -44,6 +44,7 @@ class ImportResultResponse(BaseModel):
 async def import_inventory(
     file: UploadFile = File(..., description="CSV file with inventory data"),
     preview: bool = Query(False, description="Preview mode - don't write to database"),
+    mode: str = Query("append", description="Import mode: 'append' (skip duplicates) or 'replace' (clear all first)"),
     db: Database = Depends(get_db),
 ):
     """
@@ -68,11 +69,19 @@ async def import_inventory(
     Args:
         file: CSV file upload
         preview: If True, parse and validate but don't import
+        mode: Import mode - 'append' (default, skip duplicates) or 'replace' (clear all first)
         db: Database dependency
 
     Returns:
         Import results with counts and statistics
     """
+    # Validate mode parameter
+    if mode not in ["append", "replace"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Invalid mode: {mode}. Must be 'append' or 'replace'",
+        )
+
     # Validate file type
     if not file.filename:
         raise HTTPException(
@@ -99,6 +108,14 @@ async def import_inventory(
             temp_path = temp_file.name
 
         logger.info(f"Saved uploaded file to temporary location: {temp_path}")
+
+        # Clear existing components if mode is 'replace'
+        if mode == "replace" and not preview:
+            logger.info("Mode=replace: Clearing existing components")
+            with db.transaction() as cursor:
+                cursor.execute("DELETE FROM components")
+                deleted_count = cursor.rowcount
+                logger.info(f"Deleted {deleted_count} existing components")
 
         # Import using InventoryImporter
         with InventoryImporter(str(db.db_path)) as importer:

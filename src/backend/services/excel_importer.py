@@ -59,12 +59,14 @@ class InventoryImporter:
         normalized = category.strip().upper()
         return type_map.get(normalized, 'other')
 
-    def generate_component_id(self, comp_type: str, value: str, package: str) -> str:
-        """Generate unique component ID"""
+    def generate_component_id(self, comp_type: str, sub_type: str, value: str, package: str) -> str:
+        """Generate unique component ID based on type, sub_type, value, and package"""
         def clean(s: str) -> str:
             return s.lower().replace(' ', '_').replace('/', '_').replace('-', '_').replace('.', '_')
 
         parts = [clean(comp_type)]
+        if sub_type:
+            parts.append(clean(sub_type))
         if value:
             parts.append(clean(value))
         if package:
@@ -112,15 +114,16 @@ class InventoryImporter:
         value = str(row['HumanReadableValue'])
         name = self.create_component_name(subtype, value)
 
-        # Generate ID
+        # Generate ID (includes sub_type to distinguish variants like Electrolytic vs Film)
         package = str(row.get('Footprint', '')) if pd.notna(row.get('Footprint')) else ''
-        comp_id = self.generate_component_id(comp_type, value, package)
+        comp_id = self.generate_component_id(comp_type, subtype, value, package)
 
         # Build component dict
         component = {
             'id': comp_id,
             'type': comp_type,
             'name': name,
+            'sub_type': subtype if subtype else None,  # From CSV SubType column
             'value': value,
             'tolerance': None,  # Not in user's CSV
             'package': package if package else None,
@@ -132,6 +135,7 @@ class InventoryImporter:
             'unit_price': None,  # Not in user's CSV
             'location': None,  # Not in user's CSV
             'voltage': str(row.get('Voltage', '')) if pd.notna(row.get('Voltage')) else None,
+            'alternatives_json': None,  # Will be populated later when alternatives exist
             'notes': self._build_notes(row),
             'created_at': datetime.now().isoformat(),
             'updated_at': datetime.now().isoformat()
@@ -218,16 +222,16 @@ class InventoryImporter:
                 # Insert
                 cursor.execute("""
                     INSERT INTO components (
-                        id, type, name, value, tolerance, package, manufacturer,
+                        id, type, name, sub_type, value, tolerance, package, manufacturer,
                         part_number, datasheet_url, quantity_in_stock, minimum_quantity,
-                        unit_price, location, voltage, notes, created_at, updated_at
-                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                        unit_price, location, voltage, alternatives_json, notes, created_at, updated_at
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
-                    comp['id'], comp['type'], comp['name'], comp['value'],
+                    comp['id'], comp['type'], comp['name'], comp['sub_type'], comp['value'],
                     comp['tolerance'], comp['package'], comp['manufacturer'],
                     comp['part_number'], comp['datasheet_url'], comp['quantity_in_stock'],
                     comp['minimum_quantity'], comp['unit_price'], comp['location'],
-                    comp['voltage'], comp['notes'], comp['created_at'], comp['updated_at']
+                    comp['voltage'], comp['alternatives_json'], comp['notes'], comp['created_at'], comp['updated_at']
                 ))
                 inserted += 1
 

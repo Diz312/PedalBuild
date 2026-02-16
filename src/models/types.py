@@ -149,10 +149,11 @@ class Component(BaseModel):
     id: str
     type: ComponentType
     name: str
+    sub_type: Optional[str] = None  # e.g., "Metal Film", "Electrolytic", "Op-Amp"
     value: Optional[str] = None  # e.g., "10k", "100nF", "TL072"
     tolerance: Optional[str] = None  # e.g., "5%", "10%"
-    package: Optional[str] = None  # e.g., "DIP-8", "Axial 1/4W"
-    manufacturer: Optional[str] = None
+    package: Optional[str] = None  # e.g., "DIP-8", "Axial 1/4W" (primary/preferred)
+    manufacturer: Optional[str] = None  # Primary/preferred manufacturer
     part_number: Optional[str] = None
     datasheet_url: Optional[str] = None
     quantity_in_stock: int = Field(default=0, ge=0)
@@ -160,6 +161,7 @@ class Component(BaseModel):
     unit_price: Optional[float] = Field(None, ge=0)
     location: Optional[str] = None
     voltage: Optional[str] = None
+    alternatives_json: Optional[str] = None  # JSON: [{manufacturer, part_number, package, notes}]
     notes: Optional[str] = None
     created_at: datetime
     updated_at: datetime

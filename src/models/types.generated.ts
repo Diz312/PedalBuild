@@ -213,6 +213,7 @@ export interface Component {
   id: string;
   type: ComponentType;
   name: string;
+  sub_type?: any;
   value?: any;
   tolerance?: any;
   package?: any;
@@ -224,6 +225,7 @@ export interface Component {
   unit_price?: any;
   location?: any;
   voltage?: any;
+  alternatives_json?: any;
   notes?: any;
   created_at: Date;
   updated_at: Date;
@@ -327,7 +329,7 @@ export interface MissingComponent {
 }
 
 export interface PaginatedResponse {
-  items: Array<any>;
+  items: Array<Any>;
   total: number;
   page: number;
   page_size: number;
@@ -370,7 +372,7 @@ export interface PedalPCBReview {
 export interface PowerRailConfig {
   voltage: number;
   jumper_connections: Record<string, boolean>;
-  potentiometer_slots: Array<Record<string, any>>;
+  potentiometer_slots: Array<Record<string, Any>>;
 }
 
 export interface Project {

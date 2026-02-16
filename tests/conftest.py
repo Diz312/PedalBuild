@@ -87,6 +87,7 @@ def sample_component(test_db: Database) -> dict:
         "id": "resistor_10k_through_hole",
         "type": "resistor",
         "name": "Metal Film 10k",
+        "sub_type": "Metal Film",
         "value": "10k",
         "tolerance": "1%",
         "package": "through-hole",
@@ -98,6 +99,7 @@ def sample_component(test_db: Database) -> dict:
         "unit_price": None,
         "location": "Drawer A",
         "voltage": None,
+        "alternatives_json": None,
         "notes": None,
     }
 
@@ -105,15 +107,16 @@ def sample_component(test_db: Database) -> dict:
         cursor.execute(
             """
             INSERT INTO components (
-                id, type, name, value, tolerance, package, manufacturer,
+                id, type, name, sub_type, value, tolerance, package, manufacturer,
                 part_number, datasheet_url, quantity_in_stock, minimum_quantity,
-                unit_price, location, voltage, notes
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                unit_price, location, voltage, alternatives_json, notes
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
             (
                 component["id"],
                 component["type"],
                 component["name"],
+                component["sub_type"],
                 component["value"],
                 component["tolerance"],
                 component["package"],
@@ -125,6 +128,7 @@ def sample_component(test_db: Database) -> dict:
                 component["unit_price"],
                 component["location"],
                 component["voltage"],
+                component["alternatives_json"],
                 component["notes"],
             ),
         )

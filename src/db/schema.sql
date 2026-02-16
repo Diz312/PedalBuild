@@ -101,10 +101,11 @@ CREATE TABLE components (
     id TEXT PRIMARY KEY,
     type TEXT NOT NULL,                  -- resistor, capacitor, ic, transistor, diode, potentiometer, switch, led, jack, other
     name TEXT NOT NULL,
+    sub_type TEXT,                       -- e.g., 'Metal Film', 'Electrolytic', 'Op-Amp' (from CSV SubType column)
     value TEXT,                          -- e.g., '10k', '100nF', 'TL072'
     tolerance TEXT,                      -- e.g., '5%', '10%'
-    package TEXT,                        -- e.g., 'DIP8', '0805', 'through-hole'
-    manufacturer TEXT,
+    package TEXT,                        -- e.g., 'DIP8', '0805', 'through-hole' (primary/preferred package)
+    manufacturer TEXT,                   -- Primary/preferred manufacturer
     part_number TEXT,
     datasheet_url TEXT,
     quantity_in_stock INTEGER DEFAULT 0,
@@ -112,6 +113,7 @@ CREATE TABLE components (
     unit_price REAL,
     location TEXT,                       -- Storage location (drawer, bin, etc.)
     voltage TEXT,                        -- e.g., '16V', '50V' (for capacitors, etc.)
+    alternatives_json TEXT,              -- JSON array of alternative manufacturers/packages: [{manufacturer, part_number, package, notes}]
     notes TEXT,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
