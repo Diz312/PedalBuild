@@ -364,8 +364,13 @@ Import component inventory from CSV file.
 
 **Query Parameters:**
 - `preview` (optional): Set to `true` for preview mode (doesn't write to database)
+- `mode` (optional): Import mode - `append` (default, skip duplicates) or `replace` (clear all first)
 
 **Request:** Multipart form-data with CSV file
+
+**Import Modes:**
+- **`mode=append`** (default): Add new components, skip duplicates (CDC pattern)
+- **`mode=replace`**: Delete all existing components, then import (full reload)
 
 **Response:**
 ```json
@@ -389,8 +394,12 @@ Import component inventory from CSV file.
 curl -X POST http://localhost:8000/api/import/inventory?preview=true \
   -F "file=@myInventory.csv"
 
-# Import to database
+# Append mode (default - skip duplicates)
 curl -X POST http://localhost:8000/api/import/inventory \
+  -F "file=@myInventory.csv"
+
+# Replace mode (clear all, then import)
+curl -X POST "http://localhost:8000/api/import/inventory?mode=replace" \
   -F "file=@myInventory.csv"
 ```
 

@@ -68,8 +68,12 @@ pytest --cov=src tests/                  # Test with coverage
 curl -X POST http://localhost:8000/api/import/inventory?preview=true \
   -F "file=@data/imports/myInventory.csv"
 
-# Actually import
+# Append mode (skip duplicates - default)
 curl -X POST http://localhost:8000/api/import/inventory \
+  -F "file=@data/imports/myInventory.csv"
+
+# Replace mode (clear all, then import)
+curl -X POST "http://localhost:8000/api/import/inventory?mode=replace" \
   -F "file=@data/imports/myInventory.csv"
 ```
 

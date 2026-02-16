@@ -1,7 +1,7 @@
 # PedalBuild - Current Status & Resume Guide
 
-**Last Updated**: 2026-02-16
-**Phase**: 2/6 Complete ✅ (Backend Foundation)
+**Last Updated**: 2026-02-16 (Updated: sub_type field & import modes)
+**Phase**: 2/6 Complete ✅ (Backend Foundation + Enhancements)
 **Next Phase**: Frontend Development (Phase 3)
 
 ---
@@ -59,13 +59,16 @@ Documentation:
 - ✅ Database schema (19 tables, 3 views, 5 triggers)
 - ✅ 3 Business services (Excel Importer, Component Inventory, BOM Manager)
 
-### Phase 2: Backend API ✅ (Just Completed)
+### Phase 2: Backend API ✅ (Complete + Enhanced)
 - ✅ **FastAPI Server** - CORS, logging, error handling, health checks
 - ✅ **Database Foundation** - Connection pooling, transactions, SQLite initialized
+- ✅ **Enhanced Component Schema** - Added sub_type and alternatives_json fields
+- ✅ **Smart Component IDs** - Include sub_type to distinguish variants (1uF Electrolytic ≠ 1uF Film)
+- ✅ **Flexible Import Modes** - append (CDC) or replace (full reload)
 - ✅ **REST API (16 endpoints)**:
   - Component Inventory API (6 endpoints)
   - BOM Management API (7 endpoints)
-  - CSV Import API (3 endpoints)
+  - CSV Import API (3 endpoints with mode parameter)
 - ✅ **Comprehensive Testing** - 24 integration tests, all passing
 - ✅ **Documentation** - Complete API reference with examples
 
@@ -85,10 +88,11 @@ Documentation:
 1. **Component Inventory Management**
    - List all components (with type filtering)
    - Search by value/name/part number
-   - Get component details by ID
+   - Get component details by ID (includes sub_type)
    - Low stock alerts
    - Inventory statistics
    - Update quantities (add/subtract)
+   - Component variants properly distinguished (sub_type field)
 
 2. **BOM Management**
    - Get complete BOM for circuits
@@ -100,10 +104,12 @@ Documentation:
    - Export BOM to CSV
 
 3. **CSV Import**
-   - Import inventory from user's 14-column CSV format
+   - Import inventory from user's 14-column CSV format (includes SubType)
+   - Two import modes: append (CDC) or replace (full reload)
    - Preview mode (validate without importing)
    - Download CSV template
    - Format documentation
+   - Smart duplicate detection using type+subtype+value+package
 
 ### Test It Yourself
 
