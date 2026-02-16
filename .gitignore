@@ -72,11 +72,11 @@ data/exports/**/*
 !data/exports/.gitkeep
 
 # IDE
-.vscode/
-.idea/
+.idea/  # JetBrains IDEs (user-specific)
 *.swp
 *.swo
 *~
+# Note: .vscode/ is committed (shared project settings)
 
 # OS
 Thumbs.db
